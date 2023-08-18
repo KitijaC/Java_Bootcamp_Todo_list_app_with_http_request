@@ -64,7 +64,17 @@ public class TodoItemController {
     }
 
     public void viewAllTodo() {
+        try {
+            StringBuilder todoItemsAsString = new StringBuilder();
 
+            for (Todo todo: this.todoService.getAllTodoItems()) {
+                todoItemsAsString.append(todo.toString());
+            }
+
+            this.displayMessage(todoItemsAsString.toString());
+        } catch (Exception exception) {
+            this.displayMessage(exception.getMessage());
+        }
     }
     public void viewTodo() {
 
