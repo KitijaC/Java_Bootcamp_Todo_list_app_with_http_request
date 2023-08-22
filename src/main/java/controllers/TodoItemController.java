@@ -7,6 +7,7 @@ import services.TodoService;
 
 import javax.swing.*;
 import java.util.Arrays;
+import java.util.List;
 
 public class TodoItemController {
     private final TodoService todoService = new TodoService();
@@ -77,13 +78,59 @@ public class TodoItemController {
         }
     }
     public void viewTodo() {
+        try {
+            List<Todo> existingTodoItem = this.todoService.getAllTodoItems();
+           Todo selectTodo = (Todo) this.getUserInputFromDropdown(
+                    existingTodoItem.toArray(),
+                    "View item",
+                    "Choose the item to view"
+            );
 
+           Todo todo = this.todoService.getTodoItem(selectTodo.get_id());
+
+           this.displayMessage(
+                   new StringBuilder()
+                       .append("Description: \t").append(todo.getDescription()).append("\n")
+                       .append("Due Date: \t").append(todo.getDueDate()).append("\n")
+                       .append("Status: \t").append(todo.getStatus()).append("\n")
+                       .append("Priority: \t").append(todo.getPriority()).append("\n")
+                       .append("ID: \t").append(todo.get_id()).append("\n")
+                       .toString()
+           );
+        } catch (Exception exception) {
+            this.displayMessage(exception.getMessage());
+        }
     }
     public void removeTodo() {
+        try {
+            List<Todo> existingTodoItem = this.todoService.getAllTodoItems();
+            Todo selectTodo = (Todo) this.getUserInputFromDropdown(
+                    existingTodoItem.toArray(),
+                    "Delete item",
+                    "Choose the item to delete"
+            );
 
+            this.todoService.deleteTodoItem(selectTodo.get_id());
+
+            this.displayMessage("Todo item was deleted successfully");
+
+        } catch (Exception exception) {
+            this.displayMessage(exception.getMessage());
+        }
     }
     public void updateTodo() {
-
+      try {
+          List<Todo> existingTodoItem = this.todoService.getAllTodoItems();
+          Todo selectTodo = (Todo) this.getUserInputFromDropdown(
+                  existingTodoItem.toArray(),
+                  "Update item",
+                  "Choose the item to update"
+          );
+          Todo todo = this.collectTodoInfo();
+          this.todoService.updateTodoItem(todo, selectTodo.get_id());
+          this.displayMessage("Todo item updated successfully");
+      } catch (Exception e) {
+          this.displayMessage(e.getMessage());
+      }
     }
-
 }

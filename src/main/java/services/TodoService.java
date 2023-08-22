@@ -10,6 +10,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class TodoService {
@@ -67,7 +68,74 @@ public class TodoService {
 
     }
 
-    public List<Todo> getAllTodoItems() {
-        return new ArrayList<>();
+    public List<Todo> getAllTodoItems() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(this.BASE_URL + this.TODO_ENDPOINT))
+                .timeout(Duration.ofSeconds(30))
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .GET() // because we are asking data from the API
+                .build();
+
+        HttpResponse<String> response = this.httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new Exception("Request failed, API responded with code: " + response.statusCode());
+        }
+
+        List<Todo> convertedListFromAPI = Arrays.asList(this.gson.fromJson(response.body(), Todo[].class));
+        return convertedListFromAPI;
+    }
+
+    public Todo getTodoItem(String todoId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(this.BASE_URL + this.TODO_ENDPOINT + "/" + todoId))
+                .timeout(Duration.ofSeconds(30))
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+
+        HttpResponse<String> response = this.httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new Exception("Unable to find todo item with id " + todoId + ". Error code: " + response.statusCode());
+        }
+
+        Todo todo = this.gson.fromJson(response.body(), Todo.class);
+        return todo;
+
+    }
+
+    public void deleteTodoItem(String todoId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(this.BASE_URL + this.TODO_ENDPOINT + "/" + todoId))
+                .timeout(Duration.ofSeconds(30))
+                .header("Accept", "application/json")
+                .DELETE()
+                .build();
+
+        HttpResponse<String> response = this.httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new Exception("Unable to delete the todo item with id " + todoId + ", error code: " + response.statusCode());
+        }
+    }
+
+    public Todo updateTodoItem(Todo todo, String todoId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(this.BASE_URL + this.TODO_ENDPOINT + "/" + todoId))
+                .timeout(Duration.ofSeconds(30))
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(this.gson.toJson(todo)))
+                .build();
+
+        HttpResponse<String> response = this.httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new Exception("Unable to update the todo item with id " + todoId + ", error code: " + response.statusCode());
+        }
+
+        return this.gson.fromJson(response.body(), Todo.class);
     }
 }
